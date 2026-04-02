@@ -4,7 +4,6 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 const uploadController = require('../controllers/upload.controller');
-const { protect } = require('../middleware/auth.middleware');
 
 /**
  * Configure Cloudinary Storage for Multer
@@ -12,11 +11,10 @@ const { protect } = require('../middleware/auth.middleware');
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
-    const userId = req.user._id.toString();
     const fileExt = file.originalname.split('.').pop() || 'webm';
 
     return {
-      folder: `call-recordings/${userId}`,
+      folder: 'call-recordings',
       resource_type: 'video', // Audio files are stored as video in Cloudinary
       format: fileExt,
       public_id: `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
@@ -59,29 +57,29 @@ const upload = multer({
 /**
  * @route   POST /api/upload
  * @desc    Upload call recording to Cloudinary
- * @access  Private
+ * @access  Public
  */
-router.post('/', protect, upload.single('recording'), uploadController.uploadRecording);
+router.post('/', upload.single('recording'), uploadController.uploadRecording);
 
 /**
  * @route   GET /api/upload
- * @desc    Get all recordings for logged in user
- * @access  Private
+ * @desc    Get all recordings
+ * @access  Public
  */
-router.get('/', protect, uploadController.getRecordings);
+router.get('/', uploadController.getRecordings);
 
 /**
  * @route   GET /api/upload/:publicId
  * @desc    Get a single recording by public ID
- * @access  Private
+ * @access  Public
  */
-router.get('/:publicId', protect, uploadController.getRecordingById);
+router.get('/:publicId', uploadController.getRecordingById);
 
 /**
  * @route   DELETE /api/upload/:publicId
  * @desc    Delete a recording from Cloudinary
- * @access  Private
+ * @access  Public
  */
-router.delete('/:publicId', protect, uploadController.deleteRecording);
+router.delete('/:publicId', uploadController.deleteRecording);
 
 module.exports = router;
